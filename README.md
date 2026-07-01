@@ -139,8 +139,7 @@ text
                                                              
  👑 ᴏᴡɴᴇʀ:      ⏤͟͞ 𝐂𝐑𝐀𝐙𝐘 𝐁𝐎𝐘 ᭄࿐                        
  📞 ᴄᴏɴᴛᴀᴄᴛ:    @CrazyyCore                                 
- 🤖 ʙᴏᴛ:         @Pikachu_Protection_Robot                   
- 📧 ᴇᴍᴀɪʟ:       crazyboy@example.com                       
+ 🤖 ʙᴏᴛ:         @Pikachu_Protection_Robot                                   
                                                               
 ╚═══════════════════════════════════════════════════════════════╝
 </div>
