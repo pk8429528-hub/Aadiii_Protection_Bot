@@ -16,38 +16,25 @@
 <!-- ============================================ -->
 
 <p align="center">
-  <!-- Bot -->
   <a href="https://t.me/Pikachu_Protection_Robot">
     <img src="https://img.shields.io/badge/🤖_Bot-@Pikachu_Protection_Robot-0088cc?style=for-the-badge&logo=telegram&logoColor=white" alt="Bot"/>
   </a>
-  
-  <!-- Owner -->
   <a href="https://t.me/CrazyyCore">
     <img src="https://img.shields.io/badge/👑_Owner-@CrazyyCore-FF6B6B?style=for-the-badge&logo=telegram&logoColor=white" alt="Owner"/>
   </a>
-  
-  <!-- Support Group -->
   <a href="https://t.me/+Fgx6_JRTLkFjMjE1">
-    <img src="https://img.shields.io/badge/💬_Support_Group-Join-2ECC71?style=for-the-badge&logo=telegram&logoColor=white" alt="Support Group"/>
+    <img src="https://img.shields.io/badge/📢_Group-Join_Now-2ECC71?style=for-the-badge&logo=telegram&logoColor=white" alt="Group"/>
   </a>
-  
-  <!-- Tech Stack -->
   <a href="https://python.org">
     <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
   </a>
   <a href="https://mongodb.com">
     <img src="https://img.shields.io/badge/MongoDB-4.4+-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB"/>
   </a>
-  
-  <!-- Version & License -->
   <a href="#">
     <img src="https://img.shields.io/badge/Version-2.0.0-FFD93D?style=for-the-badge&logo=github&logoColor=white" alt="Version"/>
   </a>
-  <a href="#">
-    <img src="https://img.shields.io/badge/License-MIT-9B59B6?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License"/>
-  </a>
 </p>
-
 
 <!-- ============================================ -->
 <!--            ANIMATED DIVIDER                   -->
