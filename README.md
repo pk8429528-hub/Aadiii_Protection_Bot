@@ -161,7 +161,7 @@ We welcome contributions! Here's how:
 
 <!-- ============================================ --><!-- SUPPORT --><!-- ============================================ -->
 💬 sᴜᴘᴘᴏʀᴛ
-<div align="left">
+</div>
 ᴘʟᴀᴛғᴏʀᴍ	ʟɪɴᴋ
 📱 Telegram	@Pikachu_Protection_Robot
 👑 Owner	@CrazyyCore
