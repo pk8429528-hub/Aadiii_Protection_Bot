@@ -161,7 +161,7 @@ We welcome contributions! Here's how:
 
 <!-- ============================================ --><!-- SUPPORT --><!-- ============================================ -->
 💬 sᴜᴘᴘᴏʀᴛ
-<div align="center">
+<div align="left">
 ᴘʟᴀᴛғᴏʀᴍ	ʟɪɴᴋ
 📱 Telegram	@Pikachu_Protection_Robot
 👑 Owner	@CrazyyCore
@@ -240,8 +240,6 @@ What's Included:
 ✅ License information
 
 ✅ Animated footer
-
-The README is now ready to copy and paste directly into GitHub! 🎉
 
 
 </td>
