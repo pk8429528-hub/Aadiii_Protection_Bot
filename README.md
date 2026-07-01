@@ -15,35 +15,38 @@
 <!--            ANIMATED BADGES                    -->
 <!-- ============================================ -->
 
-<!-- Support Channel -->
-<a href="https://t.me/your_channel">
-  <img src="https://img.shields.io/badge/📢_Updates_Channel-Join-1DA1F2?style=for-the-badge&logo=telegram&logoColor=white" alt="Updates Channel"/>
-</a>
-
-<!-- Support Group -->
-<a href="https://t.me/your_group">
-  <img src="https://img.shields.io/badge/💬_Support_Group-Join-25D366?style=for-the-badge&logo=telegram&logoColor=white" alt="Support Group"/>
-</a>
-
-<!-- GitHub Repo -->
-<a href="https://github.com/yourusername/pikachu-protection-bot">
-  <img src="https://img.shields.io/badge/📂_GitHub_Repo-View-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Repo"/>
-</a>
-
-<!-- Donate/Sponsor -->
-<a href="https://paypal.me/yourpaypal">
-  <img src="https://img.shields.io/badge/💰_Sponsor-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="Donate"/>
-</a>
-
-<!-- Stars -->
-<a href="#">
-  <img src="https://img.shields.io/github/stars/yourusername/pikachu-protection-bot?style=for-the-badge&logo=github&color=FFD700" alt="Stars"/>
-</a>
-
-<!-- Forks -->
-<a href="#">
-  <img src="https://img.shields.io/github/forks/yourusername/pikachu-protection-bot?style=for-the-badge&logo=github&color=FF6B6B" alt="Forks"/>
-</a>
+<p align="center">
+  <!-- Bot -->
+  <a href="https://t.me/Pikachu_Protection_Robot">
+    <img src="https://img.shields.io/badge/🤖_Bot-@Pikachu_Protection_Robot-0088cc?style=for-the-badge&logo=telegram&logoColor=white" alt="Bot"/>
+  </a>
+  
+  <!-- Owner -->
+  <a href="https://t.me/CrazyyCore">
+    <img src="https://img.shields.io/badge/👑_Owner-@CrazyyCore-FF6B6B?style=for-the-badge&logo=telegram&logoColor=white" alt="Owner"/>
+  </a>
+  
+  <!-- Support Group -->
+  <a href="https://t.me/+Fgx6_JRTLkFjMjE1">
+    <img src="https://img.shields.io/badge/💬_Support_Group-Join-2ECC71?style=for-the-badge&logo=telegram&logoColor=white" alt="Support Group"/>
+  </a>
+  
+  <!-- Tech Stack -->
+  <a href="https://python.org">
+    <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
+  </a>
+  <a href="https://mongodb.com">
+    <img src="https://img.shields.io/badge/MongoDB-4.4+-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB"/>
+  </a>
+  
+  <!-- Version & License -->
+  <a href="#">
+    <img src="https://img.shields.io/badge/Version-2.0.0-FFD93D?style=for-the-badge&logo=github&logoColor=white" alt="Version"/>
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/License-MIT-9B59B6?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License"/>
+  </a>
+</p>
 
 
 <!-- ============================================ -->
