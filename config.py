@@ -8,7 +8,7 @@ class Config:
     BOT_TOKEN = os.getenv("BOT_TOKEN")
     
     # MongoDB URI
-    MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+    MONGO_URI = os.getenv("MONGO_URI", "")
     DB_NAME = os.getenv("DB_NAME", "pikachu_protection")
     
     # Admin IDs (Owner) - Your ID: 7790607144
