@@ -11,6 +11,15 @@ from datetime import datetime
 from flask import Flask
 import threading
 
+# ────═◈═─ FIX FOR PTB VERSION COMPATIBILITY ─═◈═────
+import telegram.ext._updater
+if not hasattr(telegram.ext._updater.Updater, '_Updater__polling_cleanup_cb'):
+    # Monkey patch the missing attribute
+    class PatchedUpdater(telegram.ext.Updater):
+        pass
+    telegram.ext.Updater = PatchedUpdater
+# ──────────────────────────────────────────────────
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
