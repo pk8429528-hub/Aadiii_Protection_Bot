@@ -5,7 +5,7 @@ load_dotenv()
 
 class Config:
     # ────═◈═─ BOT CONFIGURATION ─═◈═────
-    BOT_TOKEN = os.getenv("BOT_TOKEN")
+    BOT_TOKEN = os.getenv("BOT_TOKEN", "")
     
     # ────═◈═─ MONGODB ─═◈═────
     MONGO_URI = os.getenv("MONGO_URI", "")
@@ -21,10 +21,10 @@ class Config:
     BOT_USERNAME = os.getenv("BOT_USERNAME", "@Pikachu_Protection_Robot")
     
     # ────═◈═─ PREMIUM USERS ─═◈═────
-    PREMIUM_USERS = [int(id) for id in os.getenv("PREMIUM_USERS", "7790607144").split(",") if id]
+    PREMIUM_USERS = [int(id.strip()) for id in os.getenv("PREMIUM_USERS", "7790607144").split(",") if id.strip()]
     
     # ────═◈═─ PROTECTION SETTINGS ─═◈═────
     MAX_WARNINGS = int(os.getenv("MAX_WARNINGS", "3"))
     MUTE_DURATION = int(os.getenv("MUTE_DURATION", "300"))
     FLOOD_LIMIT = int(os.getenv("FLOOD_LIMIT", "5"))
-    LOG_CHANNEL = os.getenv("LOG_CHANNEL", "")
+    LOG_CHANNEL = os.getenv("LOG_CHANNEL", "-1003983202182")
