@@ -15,7 +15,7 @@ class Database:
         self.settings = self.db.settings
         self.premium = self.db.premium
     
-    # User Methods
+    # ────═◈═─ USER METHODS ─═◈═────
     async def add_user(self, user_id, username=None, first_name=None):
         if not self.users.find_one({"user_id": user_id}):
             return self.users.insert_one({
@@ -28,7 +28,7 @@ class Database:
     async def get_user(self, user_id):
         return self.users.find_one({"user_id": user_id})
     
-    # Group Methods
+    # ────═◈═─ GROUP METHODS ─═◈═────
     async def add_group(self, group_id, title):
         if not self.groups.find_one({"group_id": group_id}):
             return self.groups.insert_one({
@@ -40,7 +40,7 @@ class Database:
     async def get_group(self, group_id):
         return self.groups.find_one({"group_id": group_id})
     
-    # Warning Methods
+    # ────═◈═─ WARNING METHODS ─═◈═────
     async def add_warning(self, user_id, group_id, reason, admin_id):
         return self.warnings.insert_one({
             "user_id": user_id,
@@ -62,7 +62,7 @@ class Database:
             "group_id": group_id
         })
     
-    # Mute Methods
+    # ────═◈═─ MUTE METHODS ─═◈═────
     async def add_mute(self, user_id, group_id, duration, reason, admin_id):
         mute_until = datetime.datetime.now() + datetime.timedelta(seconds=duration)
         return self.mutes.insert_one({
@@ -87,7 +87,7 @@ class Database:
             "group_id": group_id
         })
     
-    # Settings Methods
+    # ────═◈═─ SETTINGS METHODS ─═◈═────
     async def get_settings(self, group_id):
         settings = self.settings.find_one({"group_id": group_id})
         if not settings:
@@ -97,8 +97,12 @@ class Database:
                 "goodbye": True,
                 "antispam": True,
                 "antilink": False,
+                "anti18": True,
                 "warn_limit": 3,
-                "mute_duration": 300
+                "mute_duration": 300,
+                "approved_users": [],
+                "custom_welcome": None,
+                "custom_goodbye": None
             }
             self.settings.insert_one(settings)
         return settings
@@ -110,7 +114,50 @@ class Database:
             upsert=True
         )
     
-    # Premium Methods
+    # ────═◈═─ CUSTOM WELCOME/GIODBYE METHODS ─═◈═────
+    async def set_custom_welcome(self, group_id, message):
+        return self.settings.update_one(
+            {"group_id": group_id},
+            {"$set": {"custom_welcome": message}},
+            upsert=True
+        )
+    
+    async def get_custom_welcome(self, group_id):
+        settings = self.settings.find_one({"group_id": group_id})
+        return settings.get("custom_welcome") if settings else None
+    
+    async def set_custom_goodbye(self, group_id, message):
+        return self.settings.update_one(
+            {"group_id": group_id},
+            {"$set": {"custom_goodbye": message}},
+            upsert=True
+        )
+    
+    async def get_custom_goodbye(self, group_id):
+        settings = self.settings.find_one({"group_id": group_id})
+        return settings.get("custom_goodbye") if settings else None
+    
+    # ────═◈═─ APPROVE/UNAPPROVE METHODS ─═◈═────
+    async def approve_user(self, user_id, group_id):
+        return self.settings.update_one(
+            {"group_id": group_id},
+            {"$addToSet": {"approved_users": user_id}},
+            upsert=True
+        )
+    
+    async def unapprove_user(self, user_id, group_id):
+        return self.settings.update_one(
+            {"group_id": group_id},
+            {"$pull": {"approved_users": user_id}}
+        )
+    
+    async def is_approved(self, user_id, group_id):
+        settings = self.settings.find_one({"group_id": group_id})
+        if settings and "approved_users" in settings:
+            return user_id in settings["approved_users"]
+        return False
+    
+    # ────═◈═─ PREMIUM METHODS ─═◈═────
     async def check_premium(self, user_id):
         premium = self.premium.find_one({"user_id": user_id})
         if premium and premium.get("expiry_date"):
