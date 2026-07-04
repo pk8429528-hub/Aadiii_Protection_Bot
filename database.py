@@ -17,7 +17,7 @@ class Database:
     
     # User Methods
     async def add_user(self, user_id, username=None, first_name=None):
-        if not await self.get_user(user_id):
+        if not self.users.find_one({"user_id": user_id}):
             return self.users.insert_one({
                 "user_id": user_id,
                 "username": username,
@@ -30,7 +30,7 @@ class Database:
     
     # Group Methods
     async def add_group(self, group_id, title):
-        if not await self.get_group(group_id):
+        if not self.groups.find_one({"group_id": group_id}):
             return self.groups.insert_one({
                 "group_id": group_id,
                 "title": title,
@@ -97,10 +97,8 @@ class Database:
                 "goodbye": True,
                 "antispam": True,
                 "antilink": False,
-                "antiflood": True,
                 "warn_limit": 3,
-                "mute_duration": 300,
-                "log_channel": None
+                "mute_duration": 300
             }
             self.settings.insert_one(settings)
         return settings
