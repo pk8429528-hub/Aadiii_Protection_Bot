@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: pikachu-protection-bot
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: OWNER_ID
+        value: 7790607144
+      - key: DB_NAME
+        value: pikachu_protection
+      - key: PREMIUM_USERS
+        value: 7790607144
+      - key: BOT_NAME
+        value: "── ᴘɪᴋᴀᴄʜᴜ ✗ ᴘʀᴏᴛᴇᴄᴛɪᴏɴ ──"
+      - key: BOT_USERNAME
+        value: "@Pikachu_Protection_Robot"
+      - key: OWNER_NAME
+        value: "⏤͟͞ 𝐂𝐑𝐀𝐙𝐘 𝐁𝐎𝐘 ᭄࿐"
+      - key: OWNER_USERNAME
+        value: "@CrazyyCore"
