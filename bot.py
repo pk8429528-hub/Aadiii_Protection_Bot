@@ -7,14 +7,13 @@ import os
 import sys
 import asyncio
 import logging
+import threading
 from datetime import datetime
 from flask import Flask
-import threading
 
 # ────═◈═─ FIX FOR PTB VERSION COMPATIBILITY ─═◈═────
 import telegram.ext._updater
 if not hasattr(telegram.ext._updater.Updater, '_Updater__polling_cleanup_cb'):
-    # Monkey patch the missing attribute
     class PatchedUpdater(telegram.ext.Updater):
         pass
     telegram.ext.Updater = PatchedUpdater
@@ -24,9 +23,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
     CommandHandler,
-    MessageHandler,
     CallbackQueryHandler,
-    filters,
     ContextTypes
 )
 
@@ -34,19 +31,19 @@ from config import Config
 from database import Database
 
 # ────═◈═─ FLASK WEB SERVER FOR RENDER ─═◈═────
-app = Flask(__name__)
+flask_app = Flask(__name__)
 
-@app.route('/')
+@flask_app.route('/')
 def home():
     return "⚡ Pikachu Protection Bot is running!"
 
-@app.route('/health')
+@flask_app.route('/health')
 def health():
     return "OK", 200
 
 def run_web():
     port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    flask_app.run(host='0.0.0.0', port=port, debug=False)
 
 threading.Thread(target=run_web, daemon=True).start()
 print("🌐 Web server started for Render port binding")
@@ -64,7 +61,6 @@ db = Database()
 
 # Custom print with premium style
 def premium_print(message, symbol="⚡"):
-    """Premium styled print message"""
     border = "═" * 50
     timestamp = datetime.now().strftime("%H:%M:%S")
     styled_msg = f"""
@@ -77,18 +73,33 @@ def premium_print(message, symbol="⚡"):
 class PikachuProtectionBot:
     def __init__(self):
         self.app = None
-        
-        # Premium startup message
         premium_print(f"ʙᴏᴛ ɪɴɪᴛɪᴀʟɪᴢɪɴɢ: {Config.BOT_NAME}", "🚀")
         premium_print(f"ᴏᴡɴᴇʀ: {Config.OWNER_NAME}", "👑")
         premium_print(f"ᴘʀᴇᴍɪᴜᴍ ғᴇᴀᴛᴜʀᴇs: ʟᴏᴀᴅᴇᴅ", "💎")
     
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /start command"""
         user = update.effective_user
         await db.add_user(user.id, user.username, user.first_name)
         
         is_premium = user.id in Config.PREMIUM_USERS or user.id in Config.OWNER_ID
+        
+        keyboard = [
+            [
+                InlineKeyboardButton("📊 sᴛᴀᴛs", callback_data="stats"),
+                InlineKeyboardButton("⚙️ sᴇᴛᴛɪɴɢs", callback_data="settings")
+            ],
+            [
+                InlineKeyboardButton("📖 ʜᴇʟᴘ", callback_data="help"),
+                InlineKeyboardButton("ℹ️ ᴀʙᴏᴜᴛ", callback_data="about")
+            ]
+        ]
+        
+        if is_premium:
+            keyboard.append([
+                InlineKeyboardButton("💎 ᴘʀᴇᴍɪᴜᴍ", callback_data="premium")
+            ])
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
         
         welcome_text = f"""
 ╔═══════════════════════════════════════╗
@@ -113,20 +124,15 @@ class PikachuProtectionBot:
 
 ᴜsᴇ /help ᴛᴏ sᴇᴇ ᴀʟʟ ᴄᴏᴍᴍᴀɴᴅs.
 """
-        await update.message.reply_text(
-            welcome_text,
-            parse_mode="Markdown"
-        )
+        await update.message.reply_text(welcome_text, parse_mode="Markdown", reply_markup=reply_markup)
     
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /help command"""
         help_text = f"""
 📖 **ᴄᴏᴍᴍᴀɴᴅ ʟɪsᴛ** 📖
 
 ╔═══════════════════════════╗
 
 **👑 ᴀᴅᴍɪɴ ᴄᴏᴍᴍᴀɴᴅs:**
-
 ╰┈➤ /warn @username - ᴡᴀʀɴ ᴜsᴇʀ  
 ╰┈➤ /warns @username - ᴄʜᴇᴄᴋ ᴡᴀʀɴs  
 ╰┈➤ /resetwarns @username - ʀᴇsᴇᴛ ᴡᴀʀɴs  
@@ -137,26 +143,20 @@ class PikachuProtectionBot:
 ╰┈➤ /unban @username - ᴜɴʙᴀɴ ᴜsᴇʀ  
 
 **📊 ɢᴇɴᴇʀᴀʟ ᴄᴏᴍᴍᴀɴᴅs:**
-
 ╰┈➤ /start - sᴛᴀʀᴛ ʙᴏᴛ  
 ╰┈➤ /help - ɢᴇᴛ ʜᴇʟᴘ  
 ╰┈➤ /about - ᴀʙᴏᴜᴛ ʙᴏᴛ  
 
 **💎 ᴘʀᴇᴍɪᴜᴍ ᴄᴏᴍᴍᴀɴᴅs:**
-
 ╰┈➤ /premium - ᴄʜᴇᴄᴋ ᴘʀᴇᴍɪᴜᴍ  
 
 ╚═══════════════════════════╝
 
 🔥 ᴘᴏᴡᴇʀᴇᴅ ʙʏ {Config.BOT_NAME}
 """
-        await update.message.reply_text(
-            help_text,
-            parse_mode="Markdown"
-        )
+        await update.message.reply_text(help_text, parse_mode="Markdown")
     
     async def about_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /about command"""
         about_text = f"""
 ⚡ **ᴀʙᴏᴜᴛ {Config.BOT_NAME}** ⚡
 
@@ -188,13 +188,9 @@ class PikachuProtectionBot:
 ᴘᴏᴡᴇʀᴇᴅ ʙʏ {Config.OWNER_NAME}
 🙏 ᴊᴀʏ sʜʀᴇᴇ ʀᴀᴍ 🙏
 """
-        await update.message.reply_text(
-            about_text,
-            parse_mode="Markdown"
-        )
+        await update.message.reply_text(about_text, parse_mode="Markdown")
     
     async def premium_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /premium command"""
         user = update.effective_user
         is_premium = user.id in Config.PREMIUM_USERS or user.id in Config.OWNER_ID
         
@@ -229,15 +225,289 @@ class PikachuProtectionBot:
 ᴄᴏɴᴛᴀᴄᴛ ᴏᴡɴᴇʀ ᴛᴏ ʙᴜʏ:
 📞 {Config.OWNER_USERNAME}
 """
-        await update.message.reply_text(
-            text,
-            parse_mode="Markdown"
-        )
+        await update.message.reply_text(text, parse_mode="Markdown")
+    
+    async def callback_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer()
+        
+        data = query.data
+        user_id = update.effective_user.id
+        
+        if data == "about":
+            text = f"""
+⚡ **ᴀʙᴏᴜᴛ {Config.BOT_NAME}** ⚡
+
+────═◈═─ ✧◈✧ ─═◈═────
+  🤖 ɴᴀᴍᴇ: {Config.BOT_NAME}  
+  📌 ɪᴅ: {Config.BOT_USERNAME} 
+  👑 ᴏᴡɴᴇʀ: {Config.OWNER_NAME} 
+  📞 ᴄᴏɴᴛᴀᴄᴛ: {Config.OWNER_USERNAME} 
+────═◈═─ ✧◈✧ ─═◈═────
+✦•·································•✦
+
+💫 **ᴅᴇsᴄʀɪᴘᴛɪᴏɴ:**
+ᴀ ᴘᴏᴡᴇʀғᴜʟ ɢʀᴏᴜᴘ ᴘʀᴏᴛᴇᴄᴛɪᴏɴ ʙᴏᴛ ᴡɪᴛʜ 
+ᴘʀᴇᴍɪᴜᴍ ғᴇᴀᴛᴜʀᴇs ᴀɴᴅ ᴀᴅᴠᴀɴᴄᴇᴅ ᴍᴏᴅᴇʀᴀᴛɪᴏɴ.
+
+⚙️ **ғᴇᴀᴛᴜʀᴇs:**
+╰┈➤ ᴀɴᴛɪ-sᴘᴀᴍ
+╰┈➤ ᴀɴᴛɪ-ʟɪɴᴋ
+╰┈➤ ᴡᴀʀɴ sʏsᴛᴇᴍ
+╰┈➤ ᴍᴜᴛᴇ/ᴜɴᴍᴜᴛᴇ
+╰┈➤ ʙᴀɴ/ᴋɪᴄᴋ
+╰┈➤ ᴡᴇʟᴄᴏᴍᴇ/ɢᴏᴏᴅʙʏᴇ
+╰┈➤ ᴘʀᴇᴍɪᴜᴍ ғᴇᴀᴛᴜʀᴇs
+
+📢 **ᴠᴇʀsɪᴏɴ:** 2.0.0
+🔰 **sᴛᴀᴛᴜs:** ᴀᴄᴛɪᴠᴇ
+
+✦•·································•✦
+ᴘᴏᴡᴇʀᴇᴅ ʙʏ {Config.OWNER_NAME}
+🙏 ᴊᴀʏ sʜʀᴇᴇ ʀᴀᴍ 🙏
+"""
+            await query.edit_message_text(text, parse_mode="Markdown")
+        
+        elif data == "help":
+            text = f"""
+📖 **ᴄᴏᴍᴍᴀɴᴅ ʟɪsᴛ** 📖
+
+╔═══════════════════════════╗
+
+**👑 ᴀᴅᴍɪɴ ᴄᴏᴍᴍᴀɴᴅs:**
+╰┈➤ /warn @username - ᴡᴀʀɴ ᴜsᴇʀ  
+╰┈➤ /warns @username - ᴄʜᴇᴄᴋ ᴡᴀʀɴs  
+╰┈➤ /resetwarns @username - ʀᴇsᴇᴛ ᴡᴀʀɴs  
+╰┈➤ /mute @username - ᴍᴜᴛᴇ ᴜsᴇʀ  
+╰┈➤ /unmute @username - ᴜɴᴍᴜᴛᴇ ᴜsᴇʀ  
+╰┈➤ /kick @username - ᴋɪᴄᴋ ᴜsᴇʀ  
+╰┈➤ /ban @username - ʙᴀɴ ᴜsᴇʀ  
+╰┈➤ /unban @username - ᴜɴʙᴀɴ ᴜsᴇʀ  
+
+**📊 ɢᴇɴᴇʀᴀʟ ᴄᴏᴍᴍᴀɴᴅs:**
+╰┈➤ /start - sᴛᴀʀᴛ ʙᴏᴛ  
+╰┈➤ /help - ɢᴇᴛ ʜᴇʟᴘ  
+╰┈➤ /about - ᴀʙᴏᴜᴛ ʙᴏᴛ  
+
+**💎 ᴘʀᴇᴍɪᴜᴍ ᴄᴏᴍᴍᴀɴᴅs:**
+╰┈➤ /premium - ᴄʜᴇᴄᴋ ᴘʀᴇᴍɪᴜᴍ  
+
+╚═══════════════════════════╝
+
+🔥 ᴘᴏᴡᴇʀᴇᴅ ʙʏ {Config.BOT_NAME}
+"""
+            await query.edit_message_text(text, parse_mode="Markdown")
+        
+        elif data == "stats":
+            if user_id not in Config.OWNER_ID:
+                await query.edit_message_text("❌ ᴏɴʟʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴠɪᴇᴡ sᴛᴀᴛs!", parse_mode="Markdown")
+                return
+            
+            users_count = db.users.count_documents({})
+            groups_count = db.groups.count_documents({})
+            warnings_count = db.warnings.count_documents({})
+            mutes_count = db.mutes.count_documents({})
+            premium_count = db.premium.count_documents({})
+            
+            text = f"""
+📊 **ʙᴏᴛ sᴛᴀᴛɪsᴛɪᴄs** 📊
+
+────═◈═─ ✧◈✧ ─═◈═────
+  👥 ᴛᴏᴛᴀʟ ᴜsᴇʀs: {users_count}  
+  📍 ᴛᴏᴛᴀʟ ɢʀᴏᴜᴘs: {groups_count} 
+  ⚠️ ᴡᴀʀɴɪɴɢs: {warnings_count}   
+  🔇 ᴀᴄᴛɪᴠᴇ ᴍᴜᴛᴇs: {mutes_count} 
+  💎 ᴘʀᴇᴍɪᴜᴍ ᴜsᴇʀs: {premium_count}
+────═◈═─ ✧◈✧ ─═◈═────
+✦•·································•✦
+
+🔥 **ʙᴏᴛ ɪɴғᴏ:**
+╰┈➤ ɴᴀᴍᴇ: {Config.BOT_NAME}
+╰┈➤ ᴠᴇʀsɪᴏɴ: 2.0.0
+╰┈➤ ᴏᴡɴᴇʀ: {Config.OWNER_NAME}
+
+⚡ **sᴛᴀᴛᴜs:** ᴏɴʟɪɴᴇ
+✦•·································•✦
+"""
+            await query.edit_message_text(text, parse_mode="Markdown")
+        
+        elif data == "settings":
+            keyboard = [
+                [
+                    InlineKeyboardButton("👋 ᴡᴇʟᴄᴏᴍᴇ", callback_data="set_welcome"),
+                    InlineKeyboardButton("👋 ɢᴏᴏᴅʙʏᴇ", callback_data="set_goodbye")
+                ],
+                [
+                    InlineKeyboardButton("🛡️ ᴀɴᴛɪ-sᴘᴀᴍ", callback_data="set_antispam"),
+                    InlineKeyboardButton("🔗 ᴀɴᴛɪ-ʟɪɴᴋ", callback_data="set_antilink")
+                ],
+                [
+                    InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="back_main")
+                ]
+            ]
+            await query.edit_message_text("⚙️ **sᴇᴛᴛɪɴɢs ᴍᴇɴᴜ**", parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
+        
+        elif data == "back_main":
+            is_premium = user_id in Config.PREMIUM_USERS or user_id in Config.OWNER_ID
+            keyboard = [
+                [
+                    InlineKeyboardButton("📊 sᴛᴀᴛs", callback_data="stats"),
+                    InlineKeyboardButton("⚙️ sᴇᴛᴛɪɴɢs", callback_data="settings")
+                ],
+                [
+                    InlineKeyboardButton("📖 ʜᴇʟᴘ", callback_data="help"),
+                    InlineKeyboardButton("ℹ️ ᴀʙᴏᴜᴛ", callback_data="about")
+                ]
+            ]
+            if is_premium:
+                keyboard.append([
+                    InlineKeyboardButton("💎 ᴘʀᴇᴍɪᴜᴍ", callback_data="premium")
+                ])
+            await query.edit_message_text("🏠 **ᴍᴀɪɴ ᴍᴇɴᴜ**", parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
+        
+        elif data == "premium":
+            is_premium = user_id in Config.PREMIUM_USERS or user_id in Config.OWNER_ID
+            if is_premium:
+                text = f"""
+💎 **ᴘʀᴇᴍɪᴜᴍ sᴛᴀᴛᴜs** 💎
+
+✅ **ʏᴏᴜ ᴀʀᴇ ᴀ ᴘʀᴇᴍɪᴜᴍ ᴜsᴇʀ!**
+
+**ᴜɴʟᴏᴄᴋᴇᴅ ғᴇᴀᴛᴜʀᴇs:**
+╰┈➤ ᴀɴᴛɪ-ᴄʀᴀsʜ
+╰┈➤ ᴀᴅᴠᴀɴᴄᴇᴅ ᴀɴᴛɪ-sᴘᴀᴍ
+╰┈➤ ᴄᴜsᴛᴏᴍ ᴡᴇʟᴄᴏᴍᴇ ɢɪғ
+╰┈➤ ᴘʀɪᴠᴀᴛᴇ ʟᴏɢs
+╰┈➤ 24/7 sᴜᴘᴘᴏʀᴛ
+
+✨ ᴛʜᴀɴᴋs ғᴏʀ ʙᴇɪɴɢ ᴘʀᴇᴍɪᴜᴍ!
+"""
+            else:
+                text = f"""
+💎 **ᴘʀᴇᴍɪᴜᴍ ᴘʟᴀɴ** 💎
+
+**ᴜɴʟᴏᴄᴋ ᴘʀᴇᴍɪᴜᴍ ғᴇᴀᴛᴜʀᴇs:**
+╰┈➤ ᴀɴᴛɪ-ᴄʀᴀsʜ
+╰┈➤ ᴀᴅᴠᴀɴᴄᴇᴅ ᴀɴᴛɪ-sᴘᴀᴍ
+╰┈➤ ᴄᴜsᴛᴏᴍ ᴡᴇʟᴄᴏᴍᴇ ɢɪғ
+╰┈➤ ᴘʀɪᴠᴀᴛᴇ ʟᴏɢs
+╰┈➤ 24/7 sᴜᴘᴘᴏʀᴛ
+
+**ᴘʀɪᴄᴇ:** $5/ᴍᴏɴᴛʜ
+
+ᴄᴏɴᴛᴀᴄᴛ ᴏᴡɴᴇʀ ᴛᴏ ʙᴜʏ:
+📞 {Config.OWNER_USERNAME}
+"""
+            await query.edit_message_text(text, parse_mode="Markdown")
+        
+        elif data.startswith("toggle_"):
+            setting = data.replace("toggle_", "")
+            chat_id = update.effective_chat.id
+            settings = await db.get_settings(chat_id)
+            current = settings.get(setting, True)
+            await db.update_settings(chat_id, setting, not current)
+            
+            status = "ᴇɴᴀʙʟᴇᴅ" if not current else "ᴅɪsᴀʙʟᴇᴅ"
+            await query.edit_message_text(f"✅ **{setting.upper()}** {status}!", parse_mode="Markdown")
+            await asyncio.sleep(1)
+            
+            keyboard = [
+                [
+                    InlineKeyboardButton("👋 ᴡᴇʟᴄᴏᴍᴇ", callback_data="set_welcome"),
+                    InlineKeyboardButton("👋 ɢᴏᴏᴅʙʏᴇ", callback_data="set_goodbye")
+                ],
+                [
+                    InlineKeyboardButton("🛡️ ᴀɴᴛɪ-sᴘᴀᴍ", callback_data="set_antispam"),
+                    InlineKeyboardButton("🔗 ᴀɴᴛɪ-ʟɪɴᴋ", callback_data="set_antilink")
+                ],
+                [
+                    InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="back_main")
+                ]
+            ]
+            await query.edit_message_text("⚙️ **sᴇᴛᴛɪɴɢs ᴍᴇɴᴜ**", parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
+        
+        elif data == "set_welcome":
+            settings = await db.get_settings(update.effective_chat.id)
+            current = settings.get('welcome', True)
+            keyboard = [
+                [
+                    InlineKeyboardButton(
+                        f"{'✅' if current else '❌'} ᴛᴏɢɢʟᴇ",
+                        callback_data="toggle_welcome"
+                    )
+                ],
+                [
+                    InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="settings")
+                ]
+            ]
+            await query.edit_message_text(
+                f"👋 **ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇ**\n\nᴄᴜʀʀᴇɴᴛ sᴛᴀᴛᴜs: {'✅ ᴇɴᴀʙʟᴇᴅ' if current else '❌ ᴅɪsᴀʙʟᴇᴅ'}",
+                parse_mode="Markdown",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        
+        elif data == "set_goodbye":
+            settings = await db.get_settings(update.effective_chat.id)
+            current = settings.get('goodbye', True)
+            keyboard = [
+                [
+                    InlineKeyboardButton(
+                        f"{'✅' if current else '❌'} ᴛᴏɢɢʟᴇ",
+                        callback_data="toggle_goodbye"
+                    )
+                ],
+                [
+                    InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="settings")
+                ]
+            ]
+            await query.edit_message_text(
+                f"👋 **ɢᴏᴏᴅʙʏᴇ ᴍᴇssᴀɢᴇ**\n\nᴄᴜʀʀᴇɴᴛ sᴛᴀᴛᴜs: {'✅ ᴇɴᴀʙʟᴇᴅ' if current else '❌ ᴅɪsᴀʙʟᴇᴅ'}",
+                parse_mode="Markdown",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        
+        elif data == "set_antispam":
+            settings = await db.get_settings(update.effective_chat.id)
+            current = settings.get('antispam', True)
+            keyboard = [
+                [
+                    InlineKeyboardButton(
+                        f"{'✅' if current else '❌'} ᴛᴏɢɢʟᴇ",
+                        callback_data="toggle_antispam"
+                    )
+                ],
+                [
+                    InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="settings")
+                ]
+            ]
+            await query.edit_message_text(
+                f"🛡️ **ᴀɴᴛɪ-sᴘᴀᴍ**\n\nᴄᴜʀʀᴇɴᴛ sᴛᴀᴛᴜs: {'✅ ᴇɴᴀʙʟᴇᴅ' if current else '❌ ᴅɪsᴀʙʟᴇᴅ'}",
+                parse_mode="Markdown",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+        
+        elif data == "set_antilink":
+            settings = await db.get_settings(update.effective_chat.id)
+            current = settings.get('antilink', False)
+            keyboard = [
+                [
+                    InlineKeyboardButton(
+                        f"{'✅' if current else '❌'} ᴛᴏɢɢʟᴇ",
+                        callback_data="toggle_antilink"
+                    )
+                ],
+                [
+                    InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="settings")
+                ]
+            ]
+            await query.edit_message_text(
+                f"🔗 **ᴀɴᴛɪ-ʟɪɴᴋ**\n\nᴄᴜʀʀᴇɴᴛ sᴛᴀᴛᴜs: {'✅ ᴇɴᴀʙʟᴇᴅ' if current else '❌ ᴅɪsᴀʙʟᴇᴅ'}",
+                parse_mode="Markdown",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
     
     async def error_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle errors"""
         logger.error(f"Update {update} caused error {context.error}")
-        
         try:
             if update and update.effective_chat:
                 await context.bot.send_message(
@@ -250,37 +520,27 @@ class PikachuProtectionBot:
             pass
     
     def run(self):
-        """Run the bot"""
         try:
-            # Create application
             self.app = Application.builder().token(Config.BOT_TOKEN).build()
-            
-            # Add command handlers
             self.app.add_handler(CommandHandler("start", self.start))
             self.app.add_handler(CommandHandler("help", self.help_command))
             self.app.add_handler(CommandHandler("about", self.about_command))
             self.app.add_handler(CommandHandler("premium", self.premium_command))
-            
-            # Add error handler
+            self.app.add_handler(CallbackQueryHandler(self.callback_handler))
             self.app.add_error_handler(self.error_handler)
             
-            # Premium startup messages
             premium_print(f"ʙᴏᴛ {Config.BOT_NAME} ɪs ɴᴏᴡ ʀᴜɴɴɪɴɢ!", "⚡")
             premium_print(f"ᴏᴡɴᴇʀ: {Config.OWNER_NAME}", "👑")
             
-            # Run the bot
             self.app.run_polling()
-            
         except Exception as e:
             premium_print(f"ᴇʀʀᴏʀ: {str(e)}", "❌")
             sys.exit(1)
 
 if __name__ == "__main__":
-    # Check for required configurations
     if not Config.BOT_TOKEN:
-        premium_print("ʙᴏᴛ ᴛᴏᴋᴇɴ ɴᴏᴛ ғᴏᴜɴᴅ! ᴘʟᴇᴀsᴇ sᴇᴛ ʙᴏᴛ_ᴛᴏᴋᴇɴ ɪɴ .ᴇɴᴠ ғɪʟᴇ", "❌")
+        premium_print("ʙᴏᴛ ᴛᴏᴋᴇɴ ɴᴏᴛ ғᴏᴜɴᴅ!", "❌")
         sys.exit(1)
     
-    # Start the bot
     bot = PikachuProtectionBot()
     bot.run()
