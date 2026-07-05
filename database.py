@@ -103,6 +103,24 @@ class Database:
     async def delete_rules(self, group_id):
         return self.rules.delete_one({"group_id": group_id})
     
+    # ────═◈═─ FILTER METHODS ─═◈═────
+    async def add_filter(self, group_id, keyword, reply_text):
+        return self.settings.update_one(
+            {"group_id": group_id},
+            {"$addToSet": {"filters": {"keyword": keyword.lower(), "reply_text": reply_text}}},
+            upsert=True
+        )
+    
+    async def remove_filter(self, group_id, keyword):
+        return self.settings.update_one(
+            {"group_id": group_id},
+            {"$pull": {"filters": {"keyword": keyword.lower()}}}
+        )
+    
+    async def get_filters(self, group_id):
+        settings = self.settings.find_one({"group_id": group_id})
+        return settings.get("filters", []) if settings else []
+    
     # ────═◈═─ SETTINGS METHODS ─═◈═────
     async def get_settings(self, group_id):
         settings = self.settings.find_one({"group_id": group_id})
@@ -117,7 +135,8 @@ class Database:
                 "warn_limit": 3,
                 "mute_duration": 300,
                 "approved_users": [],
-                "admins": []
+                "admins": [],
+                "filters": []
             }
             self.settings.insert_one(settings)
         return settings
@@ -127,41 +146,6 @@ class Database:
             {"group_id": group_id},
             {"$set": {key: value}},
             upsert=True
-        )
-    
-    # ────═◈═─ CUSTOM WELCOME/GIODBYE METHODS ─═◈═────
-    async def set_custom_welcome(self, group_id, message):
-        return self.settings.update_one(
-            {"group_id": group_id},
-            {"$set": {"custom_welcome": message}},
-            upsert=True
-        )
-    
-    async def get_custom_welcome(self, group_id):
-        settings = self.settings.find_one({"group_id": group_id})
-        return settings.get("custom_welcome") if settings else None
-    
-    async def delete_custom_welcome(self, group_id):
-        return self.settings.update_one(
-            {"group_id": group_id},
-            {"$unset": {"custom_welcome": ""}}
-        )
-    
-    async def set_custom_goodbye(self, group_id, message):
-        return self.settings.update_one(
-            {"group_id": group_id},
-            {"$set": {"custom_goodbye": message}},
-            upsert=True
-        )
-    
-    async def get_custom_goodbye(self, group_id):
-        settings = self.settings.find_one({"group_id": group_id})
-        return settings.get("custom_goodbye") if settings else None
-    
-    async def delete_custom_goodbye(self, group_id):
-        return self.settings.update_one(
-            {"group_id": group_id},
-            {"$unset": {"custom_goodbye": ""}}
         )
     
     # ────═◈═─ APPROVE/UNAPPROVE METHODS ─═◈═────
